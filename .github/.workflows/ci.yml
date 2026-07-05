@@ -1,0 +1,40 @@
+name: build-and-push
+
+on:
+  push:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  OWNER: vedavyas-karumanchi
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write          # allows pushing to GHCR
+
+    strategy:
+      matrix:
+        service: [backend, frontend]   # one build job per service
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}   # built-in; no setup needed
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.service }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/taskflow-${{ matrix.service }}:latest
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/taskflow-${{ matrix.service }}:${{ github.sha }}
