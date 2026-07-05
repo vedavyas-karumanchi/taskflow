@@ -1,0 +1,30 @@
+{
+  "name": "taskflow-backend",
+  "version": "1.0.0",
+  "description": "Applying react node docker skills",
+  "main": "backend/src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node backend/src/index.js",
+    "dev": "nodemon backend/src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vedavyas-karumanchi/taskflow.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vedavyas-karumanchi/taskflow/issues"
+  },
+  "homepage": "https://github.com/vedavyas-karumanchi/taskflow#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
