@@ -28,7 +28,8 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}   # built-in; no setup needed
+          password: ${{ secrets.GHCR_TOKEN }}   # use a PAT stored as repo secret
+
 
       - name: Build and push image
         uses: docker/build-push-action@v6
