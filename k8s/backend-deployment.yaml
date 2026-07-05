@@ -1,0 +1,64 @@
+apiVersion: apps/v1               # Deployments live in the "apps" API group
+kind: Deployment
+metadata:
+  name: backend
+  namespace: taskflow
+  labels:
+    app: backend                  # label on the Deployment object itself
+spec:
+  replicas: 2                     # desired pod count. 2+ in production ALWAYS:
+                                  # survives one pod dying AND enables
+                                  # zero-downtime rolling updates.
+  selector:
+    matchLabels:
+      app: backend                # "I manage pods with these labels."
+                                  # MUST match template.metadata.labels below,
+                                  # or the apply is rejected.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0           # never dip below desired count during deploys
+      maxSurge: 1                 # allowed to run 1 extra pod while rolling
+                                  # → each new pod must become Ready before an
+                                  #   old one is killed. True zero downtime.
+  template:                       # ↓ the pod blueprint stamped out per replica
+    metadata:
+      labels:
+        app: backend              # pods are born with this label → Service and
+                                  # the selector above both find them by it
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/vedavyas-karumanchi/taskflow-backend:latest
+          # Production practice: pin the :<git-sha> tag, not :latest —
+          # ":latest" makes "what is running right now?" unanswerable.
+          # We use :latest for the learning loop, and note the better way.
+          imagePullPolicy: Always # re-pull on pod start; needed BECAUSE we
+                                  # use a mutable tag. With sha tags:
+                                  # IfNotPresent (faster, cache-friendly).
+          ports:
+            - containerPort: 5000 # documents the port; Service targets it
+          env:
+            - name: PORT          # same 12-factor env config as Part 1 —
+              value: "5000"       # YAML strings, hence quotes
+          resources:              # ── explained fully in §6 ──
+            requests:             # guaranteed reservation; the scheduler
+              cpu: 100m           # places pods based on THESE numbers.
+              memory: 128Mi       # 100m = 0.1 CPU core.
+            limits:               # hard ceiling; exceeding memory → OOMKill,
+              cpu: 500m           # exceeding CPU → throttled.
+              memory: 256Mi
+          readinessProbe:         # "may traffic be sent to this pod?"
+            httpGet:
+              path: /api/health
+              port: 5000
+            initialDelaySeconds: 3   # wait after container start
+            periodSeconds: 5         # probe every 5s
+            failureThreshold: 3      # 3 consecutive fails → pull from Service
+          livenessProbe:          # "is this pod alive at all?"
+            httpGet:
+              path: /api/health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3      # 3 fails → RESTART the container

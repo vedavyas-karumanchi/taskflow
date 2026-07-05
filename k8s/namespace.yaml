@@ -1,0 +1,4 @@
+apiVersion: v1          # API group/version this object type belongs to
+kind: Namespace         # what we are declaring
+metadata:
+  name: taskflow        # everything app-related lives in here

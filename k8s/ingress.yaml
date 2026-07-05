@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: taskflow
+  namespace: taskflow
+  annotations:
+    # Annotations are controller-specific tuning knobs. This one tells
+    # nginx-ingress not to rewrite paths (we want /api passed through as-is).
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  ingressClassName: nginx          # which ingress controller implements this
+  rules:
+    - http:
+        paths:
+          # Order matters conceptually: more specific path first.
+          - path: /api/(.*)        # anything under /api/…
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: backend      # → backend Service, port 5000
+                port:
+                  number: 5000
+          - path: /(.*)            # everything else
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: frontend     # → frontend Service, port 80
+                port:
+                  number: 80

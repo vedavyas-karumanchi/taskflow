@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend                   # ← becomes the DNS name "backend" in-namespace
+  namespace: taskflow
+  labels:
+    app: backend                  # Prometheus will discover it by this label (§9)
+spec:
+  type: ClusterIP                 # internal-only: nothing outside the cluster
+                                  # can reach the API except through Ingress
+  selector:
+    app: backend                  # route to ALL Ready pods with this label —
+                                  # this line IS the load balancer config
+  ports:
+    - name: http                  # named ports matter: the Prometheus
+      port: 5000                  #   ServiceMonitor will reference "http"
+      targetPort: 5000            # port = the Service's port;
+                                  # targetPort = the container's port
